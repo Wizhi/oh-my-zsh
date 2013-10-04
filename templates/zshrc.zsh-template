@@ -34,8 +34,10 @@ local pathDirs;
 
 # All directories are added to $PATH if they exist
 pathDirs=(
-	/opt/phpstorm/bin
+	/opt
 	$HOME/bin
+	$HOME/.local/bin
+	$HOME/.local/opt
 )
 
 foreach dir ($pathDirs) {
