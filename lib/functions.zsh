@@ -1,5 +1,5 @@
 function zsh_stats() {
-	history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |	head -n20
+  fc -l 1 | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n20
 }
 
 function uninstall_oh_my_zsh() {
@@ -15,131 +15,61 @@ function take() {
 	cd $1
 }
 
-# --------------------------------------------
-# Extracts archived files / mounts disk images
-# 
-#     extract <file>
 #
-# @author http://nparikh.org/notes/zshrc.txt
-# @note	  .dmg/hdiutil is Mac OS X-specific.
-# --------------------------------------------
-extract () {
-	if [ -f $1 ]; then
-		case $1 in
-			*.tar.bz2) tar -jxvf $1 ;;
-			*.tar.gz) tar -zxvf $1 ;;
-			*.bz2) bunzip2 $1 ;;
-			*.dmg) hdiutil mount $1 ;;
-			*.gz) gunzip $1 ;;
-			*.tar) tar -xvf $1 ;;
-			*.tbz2) tar -jxvf $1 ;;
-			*.tgz) tar -zxvf $1 ;;
-			*.zip) unzip $1 ;;
-			*.ZIP) unzip $1 ;;
-			*.pax) cat $1 | pax -r ;;
-			*.pax.Z) uncompress $1 --stdout | pax -r ;;
-			*.Z) uncompress $1 ;;
-			*) echo "'$1' cannot be extracted/mounted via extract()" ;;
-		esac
-	else
-		echo "'$1' is not a valid file"
-	fi
+# Get the value of an alias.
+#
+# Arguments:
+#    1. alias - The alias to get its value from
+# STDOUT:
+#    The value of alias $1 (if it has one).
+# Return value:
+#    0 if the alias was found,
+#    1 if it does not exist
+#
+function alias_value() {
+    alias "$1" | sed "s/^$1='\(.*\)'$/\1/"
+    test $(alias "$1")
 }
 
-# --------------------------------------
-# Syntax-highlight JSON strings or files
 #
-#     json {"foo": "bar"}
-#     json data.json
-# --------------------------------------
-function json() {
-	if [ -p /dev/stdin ]; then
-		# piping, e.g. `echo '{"foo":42}' | json`
-		python -mjson.tool | pygmentize -l javascript
-	else
-		# e.g. `json '{"foo":42}'`
-		python -mjson.tool <<< "$*" | pygmentize -l javascript
-	fi
+# Try to get the value of an alias,
+# otherwise return the input.
+#
+# Arguments:
+#    1. alias - The alias to get its value from
+# STDOUT:
+#    The value of alias $1, or $1 if there is no alias $1.
+# Return value:
+#    Always 0
+#
+function try_alias_value() {
+    alias_value "$1" || echo "$1"
 }
 
-# ------------------------
-# Get gzipped size of file
 #
-#     gz file.ext
-# ------------------------
-function gz() {
-	echo "orig size (bytes): "
-	cat "$1" | wc -c
-	echo "gzipped size (bytes): "
-	gzip -c "$1" | wc -c
+# Set variable "$1" to default value "$2" if "$1" is not yet defined.
+#
+# Arguments:
+#    1. name - The variable to set
+#    2. val  - The default value 
+# Return value:
+#    0 if the variable exists, 3 if it was set
+#
+function default() {
+    test `typeset +m "$1"` && return 0
+    typeset -g "$1"="$2"   && return 3
 }
 
-# -----------------------------------------------------
-# Determine size of a file or total size of a directory
 #
-#     fs data.txt
-#     fs foo/bar/
-#     fs data.txt foo/bar/
-# -----------------------------------------------------
-function fs() {
-	if du -b /dev/null > /dev/null 2>&1; then
-		local arg=-sbh
-	else
-		local arg=-sh
-	fi
-	if [[ -n "$@" ]]; then
-		du $arg -- "$@"
-	else
-		du $arg .[^.]* *
-	fi
-}
-
-# ----------------------------------------------------
-# A shortcut function that simplifies usage of xclip.
+# Set enviroment variable "$1" to default value "$2" if "$1" is not yet defined.
 #
-#     cb "Hello world"
-#     cat file.ext | cb
-# ----------------------------------------------------
-cb() {
-	local _scs_col="\e[0;32m"; local _wrn_col='\e[1;31m'; local _trn_col='\e[0;33m'
-
-	# Check that xclip is installed.
-	if ! type xclip > /dev/null 2>&1; then
-		echo -e "$_wrn_col""You must have the 'xclip' program installed.\e[0m"
-	elif [[ "$USER" == "root" ]]; then # Check user is not root (root doesn't have access to user xorg server)
-		echo -e "$_wrn_col""Must be regular user (not root) to copy a file to the clipboard.\e[0m"
-	else
-		# If no tty, data should be available on stdin
-		if ! [[ "$( tty )" == /dev/* ]]; then
-			input="$(< /dev/stdin)"
-		else # Else, fetch input from params
-			input="$*"
-		fi
-
-		if [ -z "$input" ]; then # If no input, print usage message.
-			echo "Copies a string to the clipboard."
-			echo "Usage: cb <string>"
-			echo "    echo <string> | cb"
-		else
-			# Copy input to clipboard
-			echo -n "$input" | xclip -selection c
-
-			# Truncate text for status
-			if [ ${#input} -gt 80 ]; then 
-				input="$(echo $input | cut -c1-80)$_trn_col...\e[0m"
-			fi
-
-			# Print status.
-			echo -e "$_scs_col""Copied to clipboard:\e[0m $input"
-		fi
-	fi
-}
-
-# ----------------------
-# Copy file to clipboard
-# 
-#     cbf file.ext
-# ----------------------
-function cbf() {
-	cat "$1" | cb
+# Arguments:
+#    1. name - The env variable to set
+#    2. val  - The default value 
+# Return value:
+#    0 if the env variable exists, 3 if it was set
+#
+function env_default() {
+    env | grep -q "^$1=" && return 0 
+    export "$1=$2"       && return 3
 }
