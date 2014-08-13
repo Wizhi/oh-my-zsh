@@ -2,7 +2,7 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # oh-my-zsh shell theme
-ZSH_THEME="mortalscumbag" # jispwoso josh kphoen steeef tjkirch
+ZSH_THEME="bureau"
 
 source $ZSH/oh-my-zsh.sh
 
@@ -15,43 +15,36 @@ source $ZSH/oh-my-zsh.sh
 # Uncomment the following line to change how often to auto-update (in days).
 export UPDATE_ZSH_DAYS=13
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to disable command auto-correction.
-# DISABLE_CORRECTION="true"
-
 # Uncomment the following line to display red dots whilst waiting for completion.
 COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Uncomment the following line if you want to change the command execution time
 # stamp shown in the history command output.
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 HIST_STAMPS="yyyy-mm-dd"
 
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
 # Plugins to load
-plugins=(git command-not-found encode64 rand-quote urltools web-search delta)
+plugins=(
+    git
+    git-extras
+    encode64
+    rand-quote
+    urltools
+    web-search
+    archlinux
+    sprunge
+    pip
+    jsontools
+)
 
 # Extended globbing - http://zsh.sourceforge.net/Doc/Release/Expansion.html#Filename-Generation
 setopt EXTENDED_GLOB
-
-local pathDirs;
 
 # All directories are added to $PATH if they exist
 pathDirs=(
     /opt
     $HOME/bin
+    $HOME/.gem/ruby/2.1.0/bin
     $HOME/.local/bin
     $HOME/.local/opt
     usr/local/bin
@@ -62,3 +55,5 @@ foreach dir ($pathDirs) {
         PATH="$dir:$PATH"
     fi
 }
+
+alias ssh='eval $(/usr/bin/keychain --eval --agents ssh -Q --quiet ~/.ssh/id_ecdsa) && ssh'
