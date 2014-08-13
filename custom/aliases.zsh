@@ -1,7 +1,3 @@
-alias reboot="systemctl reboot"
-alias mysuspend="systemctl suspend"
-alias poweroff="systemctl poweroff"
-
 # Enhanced WHOIS lookups
 alias whois="whois -h whois-servers.net"
 
