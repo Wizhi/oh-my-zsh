@@ -55,5 +55,4 @@ foreach dir ($pathDirs) {
         PATH="$dir:$PATH"
     fi
 }
-
-alias ssh='eval $(/usr/bin/keychain --eval --agents ssh -Q --quiet ~/.ssh/id_ecdsa) && ssh'
+alias ssh='eval "$(keychain --eval --agents ssh -Q --quiet id_rsa)" && unalias ssh && ssh'
